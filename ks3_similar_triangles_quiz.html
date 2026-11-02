@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KS3 Maths: Similar Triangles Interactive Quiz</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        /* Custom scrollbar for explanations */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="bg-indigo-500 p-2 rounded-lg text-white font-bold text-xl">
+                    <i class="fa-solid fa-shapes"></i>
+                </span>
+                <div>
+                    <h1 class="font-bold text-lg md:text-xl leading-tight">KS3 Maths: Similar Triangles</h1>
+                    <p class="text-xs text-indigo-200">Interactive Assessment & Feedback</p>
+                </div>
+            </div>
+            <!-- Progress Counter -->
+            <div id="progress-container" class="text-right">
+                <span id="question-count" class="text-xs font-semibold bg-indigo-700 px-3 py-1 rounded-full uppercase tracking-wider">Question 1 of 10</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-200 h-2.5 rounded-full mb-6 overflow-hidden">
+            <div id="progress-bar" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-300" style="width: 10%"></div>
+        </div>
+
+        <!-- Quiz Card Section -->
+        <div id="quiz-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-8 mb-6">
+            
+            <!-- Question Header & Badges -->
+            <div class="flex items-center justify-between gap-2 mb-4">
+                <span id="topic-badge" class="px-2.5 py-1 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded-md">
+                    Scale Factor
+                </span>
+                <span id="difficulty-badge" class="px-2.5 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 rounded-md">
+                    Level 1
+                </span>
+            </div>
+
+            <!-- Question Text -->
+            <h2 id="question-text" class="text-lg md:text-xl font-bold text-slate-800 mb-4">
+                Loading question...
+            </h2>
+
+            <!-- SVG Diagram Container -->
+            <div id="diagram-container" class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 flex justify-center items-center min-h-[180px]">
+                <!-- SVG injected via JS -->
+            </div>
+
+            <!-- Options Grid -->
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                <!-- Options injected via JS -->
+            </div>
+
+            <!-- Feedback / Explanation Box (Hidden initially) -->
+            <div id="feedback-box" class="hidden p-4 rounded-xl border mb-6 transition-all duration-300">
+                <div class="flex items-start gap-3">
+                    <div id="feedback-icon" class="text-xl mt-0.5"></div>
+                    <div>
+                        <h4 id="feedback-title" class="font-bold text-sm md:text-base mb-1"></h4>
+                        <p id="explanation-text" class="text-xs md:text-sm text-slate-600 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex justify-between items-center pt-2">
+                <button id="hint-btn" onclick="toggleHint()" class="text-xs md:text-sm text-indigo-600 font-medium hover:text-indigo-800 transition flex items-center gap-1.5 focus:outline-none">
+                    <i class="fa-regular fa-lightbulb"></i> Need a hint?
+                </button>
+
+                <button id="next-btn" onclick="nextQuestion()" disabled class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-xl shadow transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm">
+                    Next Question <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Hint Box (Hidden initially) -->
+            <div id="hint-box" class="hidden mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                <span class="font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Hint:</span> <span id="hint-text"></span>
+            </div>
+        </div>
+
+        <!-- Quiz Results Section (Hidden by default) -->
+        <div id="results-card" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-10 text-center">
+            <div class="inline-flex justify-center items-center w-20 h-20 rounded-full bg-indigo-50 text-indigo-600 text-4xl mb-4">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            
+            <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-2">Quiz Completed!</h2>
+            <p class="text-slate-500 text-sm md:text-base mb-6">Here is how you performed on KS3 Similar Triangles:</p>
+
+            <!-- Score Summary Card -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 max-w-sm mx-auto mb-8">
+                <div class="text-4xl font-extrabold text-indigo-600 mb-1" id="score-percentage">0%</div>
+                <div class="text-sm font-semibold text-slate-600 mb-4" id="score-text">You scored 0 out of 10</div>
+                
+                <div id="grade-badge" class="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
+                    Evaluating...
+                </div>
+            </div>
+
+            <!-- Performance Feedback Message -->
+            <p id="grade-message" class="text-sm md:text-base text-slate-600 max-w-md mx-auto mb-8 leading-relaxed"></p>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center gap-3">
+                <button onclick="restartQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-rotate-right"></i> Retake Quiz
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-100 border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        <p>KS3 Mathematics Revision • Similar Triangles & Scale Factors</p>
+    </footer>
+
+    <!-- JavaScript Quiz Logic -->
+    <script>
+        // Array of 10 KS3 Similar Triangle Questions
+        const questions = [
+            {
+                id: 1,
+                topic: "Scale Factor",
+                difficulty: "Basic",
+                question: "Triangle A and Triangle B are mathematically similar. What is the scale factor of enlargement from Triangle A to Triangle B?",
+                svg: `
+                <svg width="320" height="150" viewBox="0 0 320 150" class="max-w-full">
+                    <!-- Triangle A -->
+                    <polygon points="20,120 100,120 20,60" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+                    <text x="55" y="135" font-size="12" fill="#334155" text-anchor="middle">4 cm</text>
+                    <text x="10" y="95" font-size="12" fill="#334155" text-anchor="end">3 cm</text>
+                    <text x="50" y="80" font-size="13" font-weight="bold" fill="#4f46e5">A</text>
+
+                    <!-- Triangle B -->
+                    <polygon points="150,120 310,120 150,0" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+                    <text x="230" y="135" font-size="12" fill="#334155" text-anchor="middle">8 cm</text>
+                    <text x="140" y="65" font-size="12" fill="#334155" text-anchor="end">6 cm</text>
+                    <text x="210" y="55" font-size="13" font-weight="bold" fill="#2563eb">B</text>
+                </svg>`,
+                options: ["1.5", "2", "3", "4"],
+                correct: 1,
+                hint: "Divide a side length on Triangle B by its corresponding side length on Triangle A (e.g. 8 ÷ 4).",
+                explanation: "To find the scale factor, divide any length on the enlarged shape (Triangle B) by the corresponding length on the original shape (Triangle A):\nScale Factor = 8 ÷ 4 = 2 (or 6 ÷ 3 = 2)."
+            },
+            {
+                id: 2,
+                topic: "Finding Missing Lengths",
+                difficulty: "Basic",
+                question: "These two triangles are similar. Find the value of length x.",
+                svg: `
+                <svg width="300" height="140" viewBox="0 0 300 140" class="max-w-full">
+                    <!-- Triangle 1 -->
+                    <polygon points="20,110 90,110 20,40" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+                    <text x="55" y="125" font-size="12" fill="#334155" text-anchor="middle">5 cm</text>
+                    <text x="10" y="80" font-size="12" fill="#334155" text-anchor="end">4 cm</text>
+                    
+                    <!-- Triangle 2 -->
+                    <polygon points="140,110 285,110 140,10" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+                    <text x="210" y="125" font-size="12" fill="#334155" text-anchor="middle">15 cm</text>
+                    <text x="130" y="60" font-size="13" font-weight="bold" fill="#d97706" text-anchor="end">x</text>
+                </svg>`,
+                options: ["8 cm", "10 cm", "12 cm", "14 cm"],
+                correct: 2,
+                hint: "First find the scale factor (15 ÷ 5), then multiply the corresponding side (4 cm) by that scale factor.",
+                explanation: "1. Calculate Scale Factor: 15 ÷ 5 = 3.\n2. Multiply corresponding side by the scale factor: x = 4 cm × 3 = 12 cm."
+            },
+            {
+                id: 3,
+                topic: "Conditions for Similarity",
+                difficulty: "Concept",
+                question: "Which of the following rules guarantees that two triangles are similar?",
+                svg: `
+                <svg width="280" height="110" viewBox="0 0 280 110" class="max-w-full">
+                    <polygon points="20,90 90,90 40,20" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
+                    <text x="35" y="82" font-size="10" fill="#4f46e5">60°</text>
+                    <text x="65" y="82" font-size="10" fill="#4f46e5">50°</text>
+                    <text x="38" y="38" font-size="10" fill="#4f46e5">70°</text>
+
+                    <polygon points="160,90 260,90 190,15" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1.5"/>
+                    <text x="180" y="82" font-size="10" fill="#4f46e5">60°</text>
+                    <text x="225" y="82" font-size="10" fill="#4f46e5">50°</text>
+                    <text x="188" y="35" font-size="10" fill="#4f46e5">70°</text>
+                </svg>`,
+                options: [
+                    "All three corresponding angles are equal (AAA)",
+                    "All side lengths are equal in both triangles",
+                    "Both triangles have the same area",
+                    "Both triangles have the same perimeter"
+                ],
+                correct: 0,
+                hint: "Similar shapes have identical corresponding angles even if their sizes differ.",
+                explanation: "Triangles are mathematically similar if all three corresponding angles are equal (AAA condition), or if all corresponding sides are in the same ratio."
+            },
+            {
+                id: 4,
+                topic: "Nested Triangles (Parallel Lines)",
+                difficulty: "Intermediate",
+                question: "In the diagram, line DE is parallel to line BC. Calculate the length of side BC.",
+                svg: `
+                <svg width="280" height="170" viewBox="0 0 280 170" class="max-w-full">
+                    <!-- Main Triangle ABC -->
+                    <polygon points="140,15 30,150 250,150" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+                    <!-- Parallel line DE -->
+                    <line x1="74" y1="95" x2="206" y2="95" stroke="#4f46e5" stroke-width="2.5"/>
+                    
+                    <!-- Labels -->
+                    <text x="140" y="10" font-weight="bold" font-size="12" text-anchor="middle">A</text>
+                    <text x="20" y="160" font-weight="bold" font-size="12">B</text>
+                    <text x="255" y="160" font-weight="bold" font-size="12">C</text>
+                    <text x="60" y="95" font-weight="bold" font-size="12" fill="#4f46e5">D</text>
+                    <text x="215" y="95" font-weight="bold" font-size="12" fill="#4f46e5">E</text>
+
+                    <!-- Side Measurements -->
+                    <text x="90" y="50" font-size="11" fill="#4f46e5" font-weight="bold">AD = 6 cm</text>
+                    <text x="45" y="125" font-size="11" fill="#334155">AB = 12 cm</text>
+                    <text x="140" y="90" font-size="11" fill="#4f46e5" font-weight="bold" text-anchor="middle">DE = 5 cm</text>
+                    <text x="140" y="165" font-size="11" fill="#ef4444" font-weight="bold" text-anchor="middle">BC = ?</text>
+                </svg>`,
+                options: ["8 cm", "10 cm", "12 cm", "15 cm"],
+                correct: 1,
+                hint: "Compare triangle ADE to triangle ABC. What is the scale factor from AD (6 cm) to AB (12 cm)?",
+                explanation: "Triangle ADE is similar to Triangle ABC.\nScale factor = AB ÷ AD = 12 cm ÷ 6 cm = 2.\nTherefore, BC = DE × 2 = 5 cm × 2 = 10 cm."
+            },
+            {
+                id: 5,
+                topic: "Scale Factor (Fractional)",
+                difficulty: "Intermediate",
+                question: "Triangle PQR is reduced to form similar Triangle XYZ. What is the side length y?",
+                svg: `
+                <svg width="300" height="130" viewBox="0 0 300 130" class="max-w-full">
+                    <!-- Large Triangle PQR -->
+                    <polygon points="20,110 140,110 20,20" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="80" y="125" font-size="12" fill="#334155" text-anchor="middle">18 cm</text>
+                    <text x="10" y="70" font-size="12" fill="#334155" text-anchor="end">12 cm</text>
+                    
+                    <!-- Small Triangle XYZ -->
+                    <polygon points="190,110 250,110 190,80" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+                    <text x="220" y="125" font-size="12" fill="#334155" text-anchor="middle">6 cm</text>
+                    <text x="182" y="98" font-size="13" font-weight="bold" fill="#15803d" text-anchor="end">y</text>
+                </svg>`,
+                options: ["3 cm", "4 cm", "5 cm", "6 cm"],
+                correct: 1,
+                hint: "Determine how many times smaller Triangle XYZ is compared to PQR by dividing 18 by 6.",
+                explanation: "Scale factor (reduction) = 6 ÷ 18 = 1/3 (or size is divided by 3).\nTherefore, y = 12 cm ÷ 3 = 4 cm."
+            },
+            {
+                id: 6,
+                topic: "Nested Triangles",
+                difficulty: "Intermediate",
+                question: "In this nested triangle, calculate the length of the segment DB.",
+                svg: `
+                <svg width="280" height="160" viewBox="0 0 280 160" class="max-w-full">
+                    <!-- Triangle ABC -->
+                    <polygon points="30,140 250,140 30,20" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+                    <!-- Segment DE -->
+                    <line x1="120" y1="140" x2="30" y2="70" stroke="#ea580c" stroke-width="2" stroke-dasharray="4,4"/>
+                    
+                    <!-- Direct representation: ADE inside ABC -->
+                    <polygon points="30,140 120,140 30,90" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+
+                    <text x="20" y="20" font-weight="bold" font-size="12">A</text>
+                    <text x="20" y="155" font-weight="bold" font-size="12">D</text>
+                    <text x="120" y="155" font-weight="bold" font-size="12" fill="#ea580c">E</text>
+                    <text x="255" y="155" font-weight="bold" font-size="12">B</text>
+
+                    <text x="15" y="115" font-size="11" fill="#ea580c" text-anchor="end">AD = 4</text>
+                    <text x="15" y="60" font-size="11" fill="#334155" text-anchor="end">AB = 12</text>
+                    <text x="75" y="135" font-size="11" fill="#ea580c" text-anchor="middle">AE = 5</text>
+                    <text x="185" y="135" font-size="11" fill="#c2410c" font-weight="bold" text-anchor="middle">EB = ?</text>
+                </svg>`,
+                options: ["10 cm", "11 cm", "12 cm", "15 cm"],
+                correct: 0,
+                hint: "Triangle ADE is similar to Triangle ACB. Scale factor = 12 ÷ 4 = 3. Find full length AB first, then subtract AE.",
+                explanation: "1. Small triangle side AD = 4 cm, Large triangle side AB = 12 cm.\n2. Scale Factor = 12 ÷ 4 = 3.\n3. Large base side = AE × 3 = 5 cm × 3 = 15 cm.\n4. Segment EB = Total Base (15 cm) - AE (5 cm) = 10 cm."
+            },
+            {
+                id: 7,
+                topic: "Identifying Corresponding Sides",
+                difficulty: "Basic",
+                question: "If Triangle ABC is similar to Triangle DEF (written △ABC ~ △DEF), which side corresponds to side BC?",
+                svg: `
+                <svg width="280" height="110" viewBox="0 0 280 110" class="max-w-full">
+                    <polygon points="20,90 90,90 50,30" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+                    <text x="45" y="25" font-weight="bold" font-size="12" text-anchor="middle">A</text>
+                    <text x="10" y="95" font-weight="bold" font-size="12">B</text>
+                    <text x="95" y="95" font-weight="bold" font-size="12">C</text>
+
+                    <polygon points="160,90 260,90 200,10" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+                    <text x="195" y="10" font-weight="bold" font-size="12" text-anchor="middle">D</text>
+                    <text x="150" y="95" font-weight="bold" font-size="12">E</text>
+                    <text x="265" y="95" font-weight="bold" font-size="12">F</text>
+                </svg>`,
+                options: ["DE", "EF", "DF", "AB"],
+                correct: 1,
+                hint: "Look at the order of the letters in the similarity statement: △A[BC] ~ △D[EF].",
+                explanation: "In similarity notation (△ABC ~ △DEF), the letter order matches corresponding vertices. The 2nd and 3rd letters 'BC' correspond directly to 'EF'."
+            },
+            {
+                id: 8,
+                topic: "Perimeter of Similar Triangles",
+                difficulty: "Intermediate",
+                question: "Triangle X has a perimeter of 15 cm. Triangle Y is similar to Triangle X with a scale factor of 3. What is the perimeter of Triangle Y?",
+                svg: `
+                <svg width="280" height="110" viewBox="0 0 280 110" class="max-w-full">
+                    <polygon points="30,85 80,85 55,40" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+                    <text x="55" y="65" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">X</text>
+                    <text x="55" y="102" font-size="11" fill="#334155" text-anchor="middle">Perimeter = 15 cm</text>
+
+                    <polygon points="160,95 260,95 210,10" fill="#bae6fd" stroke="#0284c7" stroke-width="2"/>
+                    <text x="210" y="60" font-size="14" font-weight="bold" fill="#0369a1" text-anchor="middle">Y</text>
+                    <text x="210" y="108" font-size="11" fill="#0284c7" font-weight="bold" text-anchor="middle">Perimeter = ?</text>
+                </svg>`,
+                options: ["30 cm", "45 cm", "60 cm", "135 cm"],
+                correct: 1,
+                hint: "The perimeter ratio of similar shapes is equal to the linear scale factor.",
+                explanation: "Perimeter is a linear measurement (1D). Therefore, the perimeter increases by the exact same scale factor as the side lengths:\nNew Perimeter = 15 cm × 3 = 45 cm."
+            },
+            {
+                id: 9,
+                topic: "Right-Angled Similar Triangles",
+                difficulty: "Intermediate",
+                question: "Find the height (h) of the larger right-angled triangle.",
+                svg: `
+                <svg width="300" height="140" viewBox="0 0 300 140" class="max-w-full">
+                    <!-- Small Right Triangle -->
+                    <polygon points="20,120 80,120 20,60" fill="#fae8ff" stroke="#c026d3" stroke-width="2"/>
+                    <!-- Right angle symbol -->
+                    <path d="M 20,110 L 30,110 L 30,120" fill="none" stroke="#c026d3" stroke-width="1.5"/>
+                    <text x="50" y="135" font-size="11" fill="#334155" text-anchor="middle">3 m</text>
+                    <text x="10" y="95" font-size="11" fill="#334155" text-anchor="end">4 m</text>
+
+                    <!-- Large Right Triangle -->
+                    <polygon points="130,120 280,120 130,10" fill="#f5d0fe" stroke="#a21caf" stroke-width="2"/>
+                    <!-- Right angle symbol -->
+                    <path d="M 130,105 L 145,105 L 145,120" fill="none" stroke="#a21caf" stroke-width="1.5"/>
+                    <text x="205" y="135" font-size="11" fill="#334155" text-anchor="middle">7.5 m</text>
+                    <text x="120" y="65" font-size="12" font-weight="bold" fill="#a21caf" text-anchor="end">h = ?</text>
+                </svg>`,
+                options: ["8 m", "9 m", "10 m", "10.5 m"],
+                correct: 1,
+                hint: "Scale Factor = Large Base ÷ Small Base = 7.5 ÷ 3.",
+                explanation: "1. Calculate Scale Factor: 7.5 ÷ 3 = 2.5.\n2. Multiply the corresponding height by the scale factor: h = 4 m × 2.5 = 10 m.\nWait, let's re-calculate: 4 × 2.5 = 10 m."
+            },
+            {
+                id: 10,
+                topic: "Area Ratio (Extension)",
+                difficulty: "Challenge",
+                question: "Triangle A and Triangle B are similar. The scale factor of side lengths from A to B is 3. If the area of Triangle A is 5 cm², what is the area of Triangle B?",
+                svg: `
+                <svg width="280" height="120" viewBox="0 0 280 120" class="max-w-full">
+                    <polygon points="30,90 70,90 50,50" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                    <text x="50" y="75" font-size="10" font-weight="bold" fill="#991b1b" text-anchor="middle">A</text>
+                    <text x="50" y="105" font-size="11" fill="#334155" text-anchor="middle">Area = 5 cm²</text>
+
+                    <polygon points="150,100 270,100 210,10" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+                    <text x="210" y="60" font-size="14" font-weight="bold" fill="#991b1b" text-anchor="middle">B</text>
+                    <text x="210" y="115" font-size="11" fill="#dc2626" font-weight="bold" text-anchor="middle">Area = ?</text>
+                </svg>`,
+                options: ["15 cm²", "30 cm²", "45 cm²", "50 cm²"],
+                correct: 2,
+                hint: "Area scale factor is equal to the length scale factor squared ((Scale Factor)²).",
+                explanation: "The Area Scale Factor is (Length Scale Factor)² = 3² = 9.\nTherefore, Area of Triangle B = Area of A × 9 = 5 cm² × 9 = 45 cm²."
+            }
+        ];
+
+        // Fix correction for Q9 in array if needed
+        questions[8].options = ["8 m", "9.5 m", "10 m", "12 m"];
+        questions[8].correct = 2; // 10 m
+
+        // Quiz State Variables
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+        let score = 0;
+
+        // DOM Elements
+        const questionText = document.getElementById("question-text");
+        const diagramContainer = document.getElementById("diagram-container");
+        const optionsContainer = document.getElementById("options-container");
+        const questionCount = document.getElementById("question-count");
+        const progressBar = document.getElementById("progress-bar");
+        const topicBadge = document.getElementById("topic-badge");
+        const difficultyBadge = document.getElementById("difficulty-badge");
+        const feedbackBox = document.getElementById("feedback-box");
+        const feedbackIcon = document.getElementById("feedback-icon");
+        const feedbackTitle = document.getElementById("feedback-title");
+        const explanationText = document.getElementById("explanation-text");
+        const hintBox = document.getElementById("hint-box");
+        const hintText = document.getElementById("hint-text");
+        const nextBtn = document.getElementById("next-btn");
+
+        // Initialize Quiz
+        function loadQuestion() {
+            const q = questions[currentQuestionIndex];
+
+            // Reset state for new question
+            feedbackBox.classList.add("hidden");
+            hintBox.classList.add("hidden");
+            nextBtn.disabled = true;
+
+            // Update Header & Badges
+            questionCount.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+            topicBadge.textContent = q.topic;
+            difficultyBadge.textContent = q.difficulty;
+
+            // Update Question and Diagram
+            questionText.textContent = `${q.id}. ${q.question}`;
+            diagramContainer.innerHTML = q.svg;
+            hintText.textContent = q.hint;
+
+            // Populate Options
+            optionsContainer.innerHTML = "";
+            q.options.forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.className = `option-btn w-full p-4 text-left rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 flex items-center justify-between shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500`;
+                btn.onclick = () => selectOption(index);
+                
+                btn.innerHTML = `
+                    <span class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">${String.fromCharCode(65 + index)}</span>
+                        <span>${option}</span>
+                    </span>
+                    <i class="fa-regular fa-circle text-slate-300 option-icon"></i>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Handle Option Selection
+        function selectOption(selectedIndex) {
+            const q = questions[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll(".option-btn");
+            
+            // Lock all buttons
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Record user answer
+            userAnswers[currentQuestionIndex] = selectedIndex;
+
+            const isCorrect = selectedIndex === q.correct;
+            if (isCorrect) score++;
+
+            // Highlight buttons
+            buttons.forEach((btn, index) => {
+                if (index === q.correct) {
+                    btn.classList.remove("bg-white", "border-slate-200");
+                    btn.classList.add("bg-emerald-50", "border-emerald-500", "text-emerald-900");
+                    btn.querySelector(".option-icon").className = "fa-solid fa-circle-check text-emerald-600 text-lg";
+                } else if (index === selectedIndex && !isCorrect) {
+                    btn.classList.remove("bg-white", "border-slate-200");
+                    btn.classList.add("bg-rose-50", "border-rose-500", "text-rose-900");
+                    btn.querySelector(".option-icon").className = "fa-solid fa-circle-xmark text-rose-600 text-lg";
+                }
+            });
+
+            // Show Feedback Box
+            feedbackBox.classList.remove("hidden", "bg-emerald-50", "border-emerald-200", "bg-rose-50", "border-rose-200");
+            if (isCorrect) {
+                feedbackBox.classList.add("bg-emerald-50", "border-emerald-200");
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i>`;
+                feedbackTitle.className = "font-bold text-sm md:text-base text-emerald-900 mb-1";
+                feedbackTitle.textContent = "Correct! Well done.";
+            } else {
+                feedbackBox.classList.add("bg-rose-50", "border-rose-200");
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600"></i>`;
+                feedbackTitle.className = "font-bold text-sm md:text-base text-rose-900 mb-1";
+                feedbackTitle.textContent = "Incorrect";
+            }
+
+            explanationText.textContent = q.explanation;
+            nextBtn.disabled = false;
+        }
+
+        // Hint Toggle
+        function toggleHint() {
+            hintBox.classList.toggle("hidden");
+        }
+
+        // Next Question or Show Results
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Display Final Results Screen
+        function showResults() {
+            document.getElementById("quiz-card").classList.add("hidden");
+            document.getElementById("progress-container").classList.add("hidden");
+            document.getElementById("results-card").classList.remove("hidden");
+
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById("score-percentage").textContent = `${percentage}%`;
+            document.getElementById("score-text").textContent = `You scored ${score} out of ${questions.length}`;
+
+            const gradeBadge = document.getElementById("grade-badge");
+            const gradeMessage = document.getElementById("grade-message");
+
+            if (percentage >= 80) {
+                gradeBadge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide bg-emerald-100 text-emerald-800";
+                gradeBadge.textContent = "Excellent - Mastery Achieved";
+                gradeMessage.textContent = "Fantastic work! You have a brilliant understanding of scale factors, finding missing sides, and properties of similar triangles.";
+            } else if (percentage >= 50) {
+                gradeBadge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide bg-amber-100 text-amber-800";
+                gradeBadge.textContent = "Good Effort - Secure Knowledge";
+                gradeMessage.textContent = "Good job! You understand the main principles of similar triangles. Review the questions you got wrong to aim for top marks!";
+            } else {
+                gradeBadge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide bg-rose-100 text-rose-800";
+                gradeBadge.textContent = "Needs Revision";
+                gradeMessage.textContent = "Don't worry! Similar triangles can be tricky. Try reviewing scale factors and nested triangles, then give the quiz another go!";
+            }
+        }
+
+        // Restart Quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers.fill(null);
+            document.getElementById("results-card").classList.add("hidden");
+            document.getElementById("quiz-card").classList.remove("hidden");
+            document.getElementById("progress-container").classList.remove("hidden");
+            loadQuestion();
+        }
+
+        // Initialize on page load
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
